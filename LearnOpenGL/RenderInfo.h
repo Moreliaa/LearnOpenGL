@@ -3,7 +3,7 @@
 using namespace std;
 
 enum RenderingMode {
-	rm_default, rm_uniform
+	rm_default, rm_offset, rm_uniform
 };
 
 struct RenderInfo

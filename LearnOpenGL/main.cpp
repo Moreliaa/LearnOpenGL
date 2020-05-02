@@ -122,8 +122,12 @@ unsigned int createVertexArrayObject(float *vertices, unsigned int verticesSize,
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize, indices, GL_STATIC_DRAW);
 
     // set the vertex attribute pointer to the bound vertex buffer and enable the vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // the VBO is not saved to the VAO, so it is ok to do this first
     glBindVertexArray(0); // the VAO needs to be unbound before unbinding the EBO because the new binding would be saved to the VAO otherwise
@@ -167,25 +171,19 @@ int main() {
         return cleanUpAllocatedResources(-1);
     }
 
-    vector<RenderInfo> infoObjects(2);
+    vector<RenderInfo> infoObjects(1);
     float vertices1[] = {
-        0.5f,  0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 
-    };
-    float vertices2[] = {
-        -0.5f, 0.5f, 0.0f, 
-        -0.5f, 0.3f, 0.0f,
-        -0.9f, 0.3f, 0.0f,
+        // positions        //colors
+        0.0f, 0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f
     };
     unsigned int indices[] = {
         0, 1, 2
     };
     infoObjects[0].vertexArrayObject = createVertexArrayObject(vertices1, sizeof(vertices1), indices, sizeof(indices));
-    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Uniform);
-    infoObjects[0].renderingMode = rm_uniform;
-    infoObjects[1].vertexArrayObject = createVertexArrayObject(vertices2, sizeof(vertices2), indices, sizeof(indices));
-    infoObjects[1].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Yellow);
+    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource_Offset, fragmentShaderSource_Vtx);
+    infoObjects[0].renderingMode = rm_offset;
 
     render(window, infoObjects);
 
