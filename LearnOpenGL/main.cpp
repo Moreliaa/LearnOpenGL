@@ -2,33 +2,13 @@
 #include <glfw3.h>
 #include <iostream>
 #include <vector>
+#include "shaderSource.h"
 #include "RenderInfo.h"
 using namespace std;
 
 
 int windowWidth_px = 800;
 int windowHeight_px = 600;
-
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-
-const char* fragmentShaderSource_Orange = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\0";
-
-const char* fragmentShaderSource_Yellow = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
-"}\0";
 
 bool initGlfwSettings() {
     if (!glfwInit()) {
@@ -61,7 +41,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
-GLFWwindow* createGlfwWindow() {
+GLFWwindow* initGlfwWindow() {
     GLFWwindow* window = glfwCreateWindow(windowWidth_px, windowHeight_px, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -153,17 +133,17 @@ unsigned int createVertexArrayObject(float *vertices, unsigned int verticesSize,
 }
 
 void render(GLFWwindow* window, vector<RenderInfo> &renderInfo) {
+    float time;
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
+        time = glfwGetTime();
         glfwPollEvents();
 
         glClear(GL_COLOR_BUFFER_BIT);
         for (unsigned int i = 0; i < renderInfo.size(); i++) {
-            glUseProgram(renderInfo[i].shaderProgram);
-            glBindVertexArray(renderInfo[i].vertexArrayObject);
-            //glDrawArrays(GL_TRIANGLES, 0, 3); // use when drawing from the vertex buffer directly
-            glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0); // use when drawing from element buffers
+            draw(renderInfo[i], time);
         }
         
         glfwSwapBuffers(window);
@@ -177,7 +157,7 @@ int main() {
     if (!initGlfwSettings())
         return -1;
 
-    GLFWwindow* window = createGlfwWindow();
+    GLFWwindow* window = initGlfwWindow();
     if (window == NULL) {
         return cleanUpAllocatedResources(-1);
     }
@@ -202,7 +182,8 @@ int main() {
         0, 1, 2
     };
     infoObjects[0].vertexArrayObject = createVertexArrayObject(vertices1, sizeof(vertices1), indices, sizeof(indices));
-    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Orange);
+    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Uniform);
+    infoObjects[0].renderingMode = rm_uniform;
     infoObjects[1].vertexArrayObject = createVertexArrayObject(vertices2, sizeof(vertices2), indices, sizeof(indices));
     infoObjects[1].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Yellow);
 
