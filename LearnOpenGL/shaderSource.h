@@ -4,6 +4,8 @@ extern const char* vertexShaderSource;
 
 extern const char* vertexShaderSource_Offset;
 
+extern const char* fragmentShaderSource_TexCoord;
+
 extern const char* fragmentShaderSource_Orange;
 
 extern const char* fragmentShaderSource_Yellow;

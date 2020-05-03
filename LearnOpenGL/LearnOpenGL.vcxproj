@@ -74,7 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\git\LearnOpenGL\src;C:\git\LearnOpenGL\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\git\LearnOpenGL\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\git\LearnOpenGL\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -146,6 +146,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RenderInfo.cpp" />
     <ClCompile Include="shaderSource.cpp" />
+    <ClCompile Include="stbi_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderInfo.h" />

@@ -4,6 +4,8 @@
 #include <vector>
 #include "shaderSource.h"
 #include "RenderInfo.h"
+#include "stb_image.h"
+
 using namespace std;
 
 
@@ -123,17 +125,44 @@ unsigned int createVertexArrayObject(float *vertices, unsigned int verticesSize,
 
     // set the vertex attribute pointer to the bound vertex buffer and enable the vertex attributes
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture coordinates
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // the VBO is not saved to the VAO, so it is ok to do this first
     glBindVertexArray(0); // the VAO needs to be unbound before unbinding the EBO because the new binding would be saved to the VAO otherwise
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     
     return vertexArrayObject;
+}
+
+unsigned int createTexture(const char* path, GLenum rgbType, GLenum activeTexture) {
+    int texWidth, texHeight, nrChannels;
+    unsigned char* texData = stbi_load(path, &texWidth, &texHeight, &nrChannels, 0);
+    unsigned int texture = 0;
+    if (texData) {
+        glGenTextures(1, &texture);
+        glActiveTexture(activeTexture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, rgbType, texWidth, texHeight, 0, rgbType, GL_UNSIGNED_BYTE, texData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    else {
+        cout << "Failed to load texture" << endl;
+    }
+    stbi_image_free(texData);
+    return texture;
 }
 
 void render(GLFWwindow* window, vector<RenderInfo> &renderInfo) {
@@ -171,19 +200,34 @@ int main() {
         return cleanUpAllocatedResources(-1);
     }
 
+    stbi_set_flip_vertically_on_load(true);
+
     vector<RenderInfo> infoObjects(1);
-    float vertices1[] = {
-        // positions        //colors
-        0.0f, 0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f
+    float verticesTri[] = {
+        // positions        // colors           // textures
+        0.0f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.5f, 1.0f,
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f
     };
-    unsigned int indices[] = {
+    float verticesRect[] = {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+    };
+    unsigned int indicesTri[] = {
         0, 1, 2
     };
-    infoObjects[0].vertexArrayObject = createVertexArrayObject(vertices1, sizeof(vertices1), indices, sizeof(indices));
-    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource_Offset, fragmentShaderSource_Vtx);
-    infoObjects[0].renderingMode = rm_offset;
+    unsigned int indicesRect[] = {
+        0, 1, 3,
+        3, 1, 2
+    };
+    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesRect, sizeof(verticesRect), indicesRect, sizeof(indicesRect));
+    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord);
+    infoObjects[0].renderingMode = rm_texture;
+    infoObjects[0].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
+    infoObjects[0].texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
 
     render(window, infoObjects);
 

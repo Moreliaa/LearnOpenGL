@@ -27,6 +27,9 @@
     <ClCompile Include="shaderSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="stbi_wrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderInfo.h">
