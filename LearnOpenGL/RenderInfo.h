@@ -12,6 +12,7 @@ struct RenderInfo
 	unsigned int vertexArrayObject;
 	unsigned int texture1;
 	unsigned int texture2;
+	unsigned int numIndices;
 	RenderingMode renderingMode = rm_default;
 };
 

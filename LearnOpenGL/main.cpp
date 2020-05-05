@@ -41,6 +41,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         GLenum newMode = params == GL_FILL ? GL_LINE : GL_FILL;
         glPolygonMode(GL_FRONT_AND_BACK, newMode);
     }
+
+    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        GLint activeShaderProgram;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &activeShaderProgram);
+        GLint varLoc = glGetUniformLocation(activeShaderProgram, "alphaBalance");
+        float val;
+        glGetUniformfv(activeShaderProgram, varLoc, &val);
+        val += 0.1f;
+        val = val < 1.0f ? val : 1.0f;
+        glUniform1f(varLoc, val);
+    }
+
+    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        GLint activeShaderProgram;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &activeShaderProgram);
+        unsigned int varLoc = glGetUniformLocation(activeShaderProgram, "alphaBalance");
+        float val;
+        glGetUniformfv(activeShaderProgram, varLoc, &val);
+        val -= 0.1f;
+        val = val > 0.0f ? val : 0.0f;
+        glUniform1f(varLoc, val);
+    }
+    
 }
 
 GLFWwindow* initGlfwWindow() {
@@ -105,6 +128,9 @@ unsigned int createShaderProgram(const char *vtxSource, const char *frgSource) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         cout << "Linking of shader program failed: " << infoLog << endl;
     }
+    glUseProgram(shaderProgram);
+    glUniform1f(glGetUniformLocation(shaderProgram, "alphaBalance"), 0.2);
+    glUseProgram(0);
     return shaderProgram;
 }
 
@@ -216,6 +242,15 @@ int main() {
         -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
         -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
     };
+    float verticesRectClamp[] = {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,   // top left 
+        -0.5f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 2.0f,   // Clamp top left
+         0.5f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0f, 2.0f,   // Clamp top right
+    };
     unsigned int indicesTri[] = {
         0, 1, 2
     };
@@ -223,11 +258,19 @@ int main() {
         0, 1, 3,
         3, 1, 2
     };
-    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesRect, sizeof(verticesRect), indicesRect, sizeof(indicesRect));
+    unsigned int indicesRectClamp[] = {
+        0, 1, 3,
+        3, 1, 2,
+        4, 5, 0,
+        4, 0, 3
+    };
+
+    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesRectClamp, sizeof(verticesRectClamp), indicesRectClamp, sizeof(indicesRectClamp));
     infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord);
     infoObjects[0].renderingMode = rm_texture;
     infoObjects[0].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
     infoObjects[0].texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
+    infoObjects[0].numIndices = 12;
 
     render(window, infoObjects);
 

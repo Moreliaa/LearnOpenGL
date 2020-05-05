@@ -43,9 +43,15 @@ const char* fragmentShaderSource_TexCoord = R"(
     uniform sampler2D texture1;
     uniform sampler2D texture2;
 
+    uniform float alphaBalance;
+
     void main()
     {
-        FragColor = mix(texture(texture1, texCoord), texture(texture2, texCoord), 0.2);
+        if (texCoord.y <= 1.0)
+            FragColor = mix(texture(texture1, texCoord), texture(texture2, texCoord), alphaBalance);
+        else {
+            FragColor = mix(vec4(0.2, 0.3, 0.3, 1.0), texture(texture2, texCoord), alphaBalance);
+        }
     }
 )";
 

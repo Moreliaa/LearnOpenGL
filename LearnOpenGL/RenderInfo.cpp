@@ -5,15 +5,15 @@
 
 using namespace std;
 
-void drawVertexArray(unsigned int vao) {
-    glBindVertexArray(vao);
+void drawVertexArray(RenderInfo &info) {
+    glBindVertexArray(info.vertexArrayObject);
     //glDrawArrays(GL_TRIANGLES, 0, 3); // use when drawing from the vertex buffer directly
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // use when drawing from element buffers
+    glDrawElements(GL_TRIANGLES, info.numIndices, GL_UNSIGNED_INT, 0); // use when drawing from element buffers
 }
 
 void drawDefault(RenderInfo& info, float time) {
     glUseProgram(info.shaderProgram);
-    drawVertexArray(info.vertexArrayObject);
+    drawVertexArray(info);
 }
 
 void drawOffset(RenderInfo& info, float time) {
@@ -21,7 +21,7 @@ void drawOffset(RenderInfo& info, float time) {
     int offsetLocation = glGetUniformLocation(info.shaderProgram, "offset");
     glUseProgram(info.shaderProgram);
     glUniform3f(offsetLocation, offsetVal, 0.0f, 0.0f);
-    drawVertexArray(info.vertexArrayObject);
+    drawVertexArray(info);
 }
 
 void drawTexture(RenderInfo& info, float time) {
@@ -32,7 +32,7 @@ void drawTexture(RenderInfo& info, float time) {
     glUseProgram(info.shaderProgram);
     glUniform1i(glGetUniformLocation(info.shaderProgram, "texture1"), 0);
     glUniform1i(glGetUniformLocation(info.shaderProgram, "texture2"), 1);
-    drawVertexArray(info.vertexArrayObject);
+    drawVertexArray(info);
 }
 
 void drawUniform(RenderInfo& info, float time) {
@@ -40,7 +40,7 @@ void drawUniform(RenderInfo& info, float time) {
     int vertexColorLocation = glGetUniformLocation(info.shaderProgram, "uniColor");
     glUseProgram(info.shaderProgram);
     glUniform4f(vertexColorLocation, 0.0f, colorVal, 0.0f, 1.0f);
-    drawVertexArray(info.vertexArrayObject);
+    drawVertexArray(info);
 }
 
 void draw(RenderInfo& info, float time) {
