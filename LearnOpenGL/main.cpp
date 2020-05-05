@@ -5,8 +5,12 @@
 #include "shaderSource.h"
 #include "RenderInfo.h"
 #include "stb_image.h"
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 using namespace std;
+using namespace glm;
 
 
 int windowWidth_px = 800;
@@ -62,6 +66,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         val -= 0.1f;
         val = val > 0.0f ? val : 0.0f;
         glUniform1f(varLoc, val);
+    }
+
+    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        mat4 transform = mat4(1.0); // identity matrix
+        // apply transformations - internally, the transformation order is always scale -> rotation -> translation
+        transform = translate(transform, vec3(0.5, -0.5, 0.0f));
+        transform = rotate(transform, (float) glfwGetTime(), vec3(0.0, 0.0, 1.0));
+        transform = scale(transform, vec3(0.5, 0.5, 0.5));
+
+        GLint activeShaderProgram;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &activeShaderProgram);
+        unsigned int varLoc = glGetUniformLocation(activeShaderProgram, "transform");
+        glUniformMatrix4fv(varLoc, 1, GL_FALSE, value_ptr(transform));
     }
     
 }

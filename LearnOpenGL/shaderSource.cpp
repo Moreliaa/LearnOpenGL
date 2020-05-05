@@ -7,9 +7,11 @@ const char* vertexShaderSource = R"(
     out vec3 vertexColor;
     out vec2 texCoord;
 
+    uniform mat4 transform = mat4(1.0);
+
     void main()
     {
-        gl_Position = vec4(aPos, 1.0);
+        gl_Position = transform * vec4(aPos, 1.0);
         vertexColor = aColor;
         texCoord = aTexCoord;
     }
@@ -25,9 +27,11 @@ const char* vertexShaderSource_Offset = R"(
     out vec2 texCoord;
     uniform vec3 offset;
 
+    uniform mat4 transform = mat4(1.0);
+
     void main()
     {
-        gl_Position = vec4(aPos + offset, 1.0);
+        gl_Position = transform * vec4(aPos + offset, 1.0);
         vertexColor = aColor;
         texCoord = aTexCoord;
     }
