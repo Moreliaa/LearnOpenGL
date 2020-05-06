@@ -70,9 +70,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         mat4 transform = mat4(1.0); // identity matrix
-        // apply transformations - internally, the transformation order is always scale -> rotation -> translation
-        transform = translate(transform, vec3(0.5, -0.5, 0.0f));
-        transform = rotate(transform, (float) glfwGetTime(), vec3(0.0, 0.0, 1.0));
+        // apply transformations - the transformation order should always be scale -> rotation -> translation
+        // --> Scalar product: Translation * Rotation * Scale
+        transform = translate(transform, vec3(0.2, -0.2, 0.0f));
+        transform = rotate(transform, (float)glfwGetTime(), vec3(0.0, 0.0, 1.0));
         transform = scale(transform, vec3(0.5, 0.5, 0.5));
 
         GLint activeShaderProgram;
@@ -212,13 +213,28 @@ void render(GLFWwindow* window, vector<RenderInfo> &renderInfo) {
     float time;
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window)) {
         time = glfwGetTime();
         glfwPollEvents();
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mat4 model(1.0);
+        model = rotate(model, time * radians(50.0f), vec3(0.5, 1.0, 0.0));
+        mat4 view(1.0);
+        view = translate(view, vec3(0.0, 0.0, -3.0));
+        mat4 projection(1.0);
+        projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
         for (unsigned int i = 0; i < renderInfo.size(); i++) {
+            int varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "model");
+            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(model));
+            varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "view");
+            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(view));
+            varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "projection");
+            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
             draw(renderInfo[i], time);
         }
         
@@ -268,6 +284,49 @@ int main() {
         -0.5f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0f, 2.0f,   // Clamp top left
          0.5f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0f, 2.0f,   // Clamp top right
     };
+    float verticesCube[] = {
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f
+    };
     unsigned int indicesTri[] = {
         0, 1, 2
     };
@@ -282,7 +341,7 @@ int main() {
         4, 0, 3
     };
 
-    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesRectClamp, sizeof(verticesRectClamp), indicesRectClamp, sizeof(indicesRectClamp));
+    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
     infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord);
     infoObjects[0].renderingMode = rm_texture;
     infoObjects[0].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);

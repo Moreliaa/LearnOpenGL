@@ -2,13 +2,40 @@
 #include <glad/glad.h>
 #include <math.h>
 #include <iostream>
+#include <glfw3.h>
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 using namespace std;
+using namespace glm;
 
 void drawVertexArray(RenderInfo &info) {
+    vec3 cubePositions[] = {
+        vec3(0.0f,  0.0f,  0.0f),
+        vec3(2.0f,  5.0f, -15.0f),
+        vec3(-1.5f, -2.2f, -2.5f),
+        vec3(-3.8f, -2.0f, -12.3f),
+        vec3(2.4f, -0.4f, -3.5f),
+        vec3(-1.7f,  3.0f, -7.5f),
+        vec3(1.3f, -2.0f, -2.5f),
+        vec3(1.5f,  2.0f, -2.5f),
+        vec3(1.5f,  0.2f, -1.5f),
+        vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     glBindVertexArray(info.vertexArrayObject);
-    //glDrawArrays(GL_TRIANGLES, 0, 3); // use when drawing from the vertex buffer directly
-    glDrawElements(GL_TRIANGLES, info.numIndices, GL_UNSIGNED_INT, 0); // use when drawing from element buffers
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        mat4 model(1.0f);
+        model = translate(model, cubePositions[i]);
+        model = rotate(model, radians(float(20.0f * (i + 1) * glfwGetTime())), vec3(1.0f, 0.3f, 0.5f));
+        int varLoc = glGetUniformLocation(info.shaderProgram, "model");
+        glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);// use when drawing from the vertex buffer directly
+    }
+    //glDrawElements(GL_TRIANGLES, info.numIndices, GL_UNSIGNED_INT, 0); // use when drawing from element buffers
 }
 
 void drawDefault(RenderInfo& info, float time) {
