@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RenderInfo.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="stbi_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="RenderInfo.h" />
     <ClInclude Include="shaderSource.h" />
   </ItemGroup>

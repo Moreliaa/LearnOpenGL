@@ -8,6 +8,7 @@
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
+#include "Camera.h"
 
 using namespace std;
 using namespace glm;
@@ -209,23 +210,39 @@ unsigned int createTexture(const char* path, GLenum rgbType, GLenum activeTextur
     return texture;
 }
 
-void render(GLFWwindow* window, vector<RenderInfo> &renderInfo) {
-    float time;
+void processInputs(GLFWwindow* window, Camera &cam, float delta) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cam.strafe(directions::d_forward, delta);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cam.strafe(directions::d_backward, delta);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cam.strafe(directions::d_left, delta);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cam.strafe(directions::d_right, delta);
+}
+
+void render(GLFWwindow* window, Camera cam, vector<RenderInfo> &renderInfo) {
+    float lastFrame = glfwGetTime();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window)) {
-        time = glfwGetTime();
+        float currentFrame = glfwGetTime();
+        float delta = currentFrame - lastFrame;
+        lastFrame = glfwGetTime();
         glfwPollEvents();
+        processInputs(window, cam, delta);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mat4 model(1.0);
-        model = rotate(model, time * radians(50.0f), vec3(0.5, 1.0, 0.0));
-        mat4 view(1.0);
-        view = translate(view, vec3(0.0, 0.0, -3.0));
+        model = rotate(model, lastFrame * radians(50.0f), vec3(0.5, 1.0, 0.0));
+        const float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        mat4 view = cam.getViewMatrix();
         mat4 projection(1.0);
-        projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        projection = perspective(radians(45.0f), ((float)windowWidth_px / (float)windowHeight_px), 0.1f, 100.0f);
 
         for (unsigned int i = 0; i < renderInfo.size(); i++) {
             int varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "model");
@@ -235,7 +252,7 @@ void render(GLFWwindow* window, vector<RenderInfo> &renderInfo) {
             varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "projection");
             glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-            draw(renderInfo[i], time);
+            draw(renderInfo[i], lastFrame);
         }
         
         glfwSwapBuffers(window);
@@ -346,9 +363,8 @@ int main() {
     infoObjects[0].renderingMode = rm_texture;
     infoObjects[0].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
     infoObjects[0].texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
-    infoObjects[0].numIndices = 12;
-
-    render(window, infoObjects);
+    infoObjects[0].numIndices = 12;    
+    render(window, Camera(), infoObjects);
 
     return cleanUpAllocatedResources(0);
 }
