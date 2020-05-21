@@ -1,7 +1,24 @@
 #include "Camera.h"
 
+void Camera::updateDirectionVector() {
+	direction.x = cos(radians(yaw)) * cos(radians(pitch));
+	direction.y = sin(radians(pitch));
+	direction.z = sin(radians(yaw)) * cos(radians(pitch));
+	direction = normalize(direction);
+}
+
 void Camera::moveTo(vec3 newPosition) {
 	position = newPosition;
+}
+
+void Camera::rotate(float yawDelta, float pitchDelta) {
+	yaw += yawDelta;
+	pitch += pitchDelta;
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+	updateDirectionVector();
 }
 
 void Camera::strafe(directions dir, float delta) {
@@ -30,7 +47,10 @@ mat4 Camera::getViewMatrix() {
 
 Camera::Camera() {
 	moveSpeed = 5.0f;
+	sensitivity = 0.1f;
 	moveTo(vec3(0.0f, 0.0f, 3.0f));
-	direction = vec3(0.0, 0.0, -1.0);
+	pitch = 0.0f;
+	yaw = -90.0f;
+	updateDirectionVector();
 	up = vec3(0.0, 1.0, 0.0);
 }

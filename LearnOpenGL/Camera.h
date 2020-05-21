@@ -12,10 +12,17 @@ class Camera
 	vec3 position;
 	vec3 direction;
 	vec3 up;
+	float yaw;
+	float pitch;
 	float moveSpeed;
-public:
-	void moveTo(vec3 newPosition);
 
+	void updateDirectionVector();
+
+public:
+	float sensitivity;
+
+	void moveTo(vec3 newPosition);
+	void rotate(float yawDelta, float pitchDelta);
 	void strafe(directions dir, float delta);
 	mat4 getViewMatrix();
 

@@ -17,6 +17,10 @@ using namespace glm;
 int windowWidth_px = 800;
 int windowHeight_px = 600;
 
+float mouse_lastX = NULL;
+float mouse_lastY = NULL;
+Camera* activeCam = nullptr;
+
 bool initGlfwSettings() {
     if (!glfwInit()) {
         cout << "Failed to initialize GLFW" << endl;
@@ -85,6 +89,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     
 }
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (mouse_lastX == NULL || mouse_lastY == NULL) {
+        mouse_lastX = xpos;
+        mouse_lastY = ypos;
+        return;
+    }
+    if (activeCam == nullptr)
+        return;
+    float yawDelta = (xpos - mouse_lastX) * activeCam->sensitivity;
+    float pitchDelta = (mouse_lastY - ypos) * activeCam->sensitivity;
+    mouse_lastX = xpos;
+    mouse_lastY = ypos;
+    activeCam->rotate(yawDelta, pitchDelta);
+}
+
 GLFWwindow* initGlfwWindow() {
     GLFWwindow* window = glfwCreateWindow(windowWidth_px, windowHeight_px, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
@@ -94,6 +113,8 @@ GLFWwindow* initGlfwWindow() {
     else {
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         glfwSetKeyCallback(window, key_callback);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetCursorPosCallback(window, mouse_callback);
     }
     return window;
 }
@@ -222,6 +243,7 @@ void processInputs(GLFWwindow* window, Camera &cam, float delta) {
 }
 
 void render(GLFWwindow* window, Camera cam, vector<RenderInfo> &renderInfo) {
+    activeCam = &cam;
     float lastFrame = glfwGetTime();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -260,6 +282,7 @@ void render(GLFWwindow* window, Camera cam, vector<RenderInfo> &renderInfo) {
 
     glUseProgram(0);
     glBindVertexArray(0);
+    activeCam = nullptr;
 }
 
 int main() {
