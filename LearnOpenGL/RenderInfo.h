@@ -6,6 +6,10 @@ enum RenderingMode {
 	rm_default, rm_offset, rm_uniform, rm_texture
 };
 
+enum VaoType {
+	object, light
+};
+
 struct RenderInfo
 {
 	unsigned int shaderProgram;
@@ -14,6 +18,7 @@ struct RenderInfo
 	unsigned int texture2;
 	unsigned int numIndices;
 	RenderingMode renderingMode = rm_default;
+	VaoType type = object;
 };
 
 void draw(RenderInfo& info, float time);
