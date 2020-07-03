@@ -1,9 +1,9 @@
-#include <glad/glad.h>
+#include "Scene.h"
 #include <glfw3.h>
 #include <iostream>
 #include <vector>
 #include "shaderSource.h"
-#include "RenderInfo.h"
+#include "SceneObject.h"
 #include "stb_image.h"
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
@@ -242,11 +242,9 @@ void processInputs(GLFWwindow* window, Camera &cam, float delta) {
         cam.strafe(directions::d_right, delta);
 }
 
-void render(GLFWwindow* window, Camera cam, vector<RenderInfo> &renderInfo) {
+void render(GLFWwindow* window, Camera cam, Scene &scene) {
     activeCam = &cam;
     float lastFrame = glfwGetTime();
-
-    vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -259,32 +257,9 @@ void render(GLFWwindow* window, Camera cam, vector<RenderInfo> &renderInfo) {
         processInputs(window, cam, delta);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        mat4 model(1.0);
-        model = rotate(model, lastFrame * radians(50.0f), vec3(0.5, 1.0, 0.0));
-        const float radius = 10.0f;
-        mat4 view = cam.getViewMatrix();
-        mat4 projection(1.0);
-        projection = perspective(radians(45.0f), ((float)windowWidth_px / (float)windowHeight_px), 0.1f, 100.0f);
+        scene.render(cam, lastFrame, windowWidth_px, windowHeight_px);
 
-        for (unsigned int i = 0; i < renderInfo.size(); i++) {
-            glUseProgram(renderInfo[i].shaderProgram);
-            int varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "model");
-            mat4 model_r(1.0);
-            if (renderInfo[i].type == light) { 
-                model_r = mat4(1.0); 
-                model_r = translate(model_r, lightPos); 
-                model_r = scale(model_r, vec3(0.2f));
-            }
-            else 
-                model_r = model;
-            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(model_r));
-            varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "view");
-            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(view));
-            varLoc = glGetUniformLocation(renderInfo[i].shaderProgram, "projection");
-            glUniformMatrix4fv(varLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-            draw(renderInfo[i], lastFrame);
-        }
+        
         
         glfwSwapBuffers(window);
     }
@@ -310,7 +285,6 @@ int main() {
 
     stbi_set_flip_vertically_on_load(true);
 
-    vector<RenderInfo> infoObjects(2);
     float verticesTri[] = {
         // positions        // colors           // textures
         0.0f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.5f, 1.0f,
@@ -390,32 +364,33 @@ int main() {
         4, 0, 3
     };
 
-    // cube
-    infoObjects[0].vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
-    //infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord); // textures
-    infoObjects[0].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Light);
-    infoObjects[0].renderingMode = rm_default;
-    infoObjects[0].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
-    infoObjects[0].texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
-    infoObjects[0].numIndices = 12;
+    SceneObject cube;
+    cube.vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
+    cube.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord); // textures
+    cube.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Light);
+    cube.renderingMode = rm_default;
+    cube.texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
+    cube.texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
+    cube.numIndices = 12;
 
-    glUseProgram(infoObjects[0].shaderProgram);
-    int varLoc = glGetUniformLocation(infoObjects[0].shaderProgram, "objectColor");
+    glUseProgram(cube.shaderProgram);
+    int varLoc = glGetUniformLocation(cube.shaderProgram, "objectColor");
     glUniform3fv(varLoc, 1, value_ptr(vec3(1.0f,0.5f,0.31f)));
-    varLoc = glGetUniformLocation(infoObjects[0].shaderProgram, "lightColor");
+    varLoc = glGetUniformLocation(cube.shaderProgram, "lightColor");
     glUniform3fv(varLoc, 1, value_ptr(vec3(1.0f, 1.0f, 1.0f)));
     glUseProgram(0);
 
-    //light source
-    infoObjects[1].vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
-    infoObjects[1].shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_White);
-    infoObjects[1].renderingMode = rm_default;
-    infoObjects[1].texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
-    infoObjects[1].texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
-    infoObjects[1].numIndices = 12;
-    infoObjects[1].type = light;
+    SceneObject lightSource;
+    lightSource.vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
+    lightSource.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_White);
+    lightSource.renderingMode = rm_default;
+    lightSource.numIndices = 12;
+    lightSource.type = light;
 
-    render(window, Camera(), infoObjects);
+    Scene scene = Scene();
+    scene.addObject(cube);
+    scene.addLightSource(lightSource);
+    render(window, Camera(), scene);
 
     return cleanUpAllocatedResources(0);
 }

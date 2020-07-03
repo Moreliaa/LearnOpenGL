@@ -10,7 +10,7 @@ enum VaoType {
 	object, light
 };
 
-struct RenderInfo
+struct SceneObject
 {
 	unsigned int shaderProgram;
 	unsigned int vertexArrayObject;
@@ -21,4 +21,4 @@ struct RenderInfo
 	VaoType type = object;
 };
 
-void draw(RenderInfo& info, float time);
+void draw(SceneObject& info, float time);

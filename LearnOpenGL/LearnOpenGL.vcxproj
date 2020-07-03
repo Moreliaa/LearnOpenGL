@@ -145,13 +145,15 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="RenderInfo.cpp" />
+    <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="shaderSource.cpp" />
     <ClCompile Include="stbi_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="RenderInfo.h" />
+    <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="shaderSource.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
