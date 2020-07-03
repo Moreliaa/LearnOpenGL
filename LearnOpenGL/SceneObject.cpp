@@ -1,14 +1,20 @@
 #include "SceneObject.h"
-#include <glad/glad.h>
-#include <math.h>
-#include <iostream>
-#include <glfw3.h>
-#include <glm/glm/glm.hpp>
-#include <glm/glm/gtc/matrix_transform.hpp>
-#include <glm/glm/gtc/type_ptr.hpp>
 
-using namespace std;
-using namespace glm;
+mat4 getModelMatrix(SceneObject &obj, float lastFrame) {
+    mat4 model(1.0);
+    switch (obj.type) {
+    case light:
+        model = translate(model, obj.position);
+        model = scale(model, vec3(0.2f));
+        break;
+    default:
+        model = rotate(model, lastFrame * radians(50.0f), vec3(0.5, 1.0, 0.0));
+        model = translate(model, obj.position);
+        break;
+    }
+    return model;
+}
+
 
 void drawVertexArray(SceneObject &info) {
     glBindVertexArray(info.vertexArrayObject);

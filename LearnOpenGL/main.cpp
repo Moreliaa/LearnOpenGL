@@ -365,6 +365,7 @@ int main() {
     };
 
     SceneObject cube;
+    cube.position = vec3(0.0f);
     cube.vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
     cube.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_TexCoord); // textures
     cube.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_Light);
@@ -372,7 +373,6 @@ int main() {
     cube.texture1 = createTexture("../img/container.jpg", GL_RGB, GL_TEXTURE0);
     cube.texture2 = createTexture("../img/awesomeface.png", GL_RGBA, GL_TEXTURE1);
     cube.numIndices = 12;
-
     glUseProgram(cube.shaderProgram);
     int varLoc = glGetUniformLocation(cube.shaderProgram, "objectColor");
     glUniform3fv(varLoc, 1, value_ptr(vec3(1.0f,0.5f,0.31f)));
@@ -381,6 +381,7 @@ int main() {
     glUseProgram(0);
 
     SceneObject lightSource;
+    lightSource.position = vec3(1.2f, 1.0f, 2.0f);
     lightSource.vertexArrayObject = createVertexArrayObject(verticesCube, sizeof(verticesCube), indicesRectClamp, sizeof(indicesRectClamp));
     lightSource.shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource_White);
     lightSource.renderingMode = rm_default;
